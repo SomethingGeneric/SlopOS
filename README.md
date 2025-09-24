@@ -1,7 +1,7 @@
 # SlopOS
 x64 OS mostly developed by Copilot
 
-A minimal C++ operating system that boots to real mode and displays "hello from SlopOS".
+A minimal C++ operating system that boots to real mode and provides a basic shell with welcome message from the kernel.
 
 ## Building and Running
 
@@ -32,6 +32,10 @@ make run
 - [x] Bootable 512-byte boot sector
 - [x] Real mode operation
 - [x] BIOS text output
-- [x] "hello from SlopOS" message display
+- [x] Welcome message displayed from kernel
+- [x] Basic interactive shell
+- [x] `uptime` command - shows seconds since boot
+- [x] `version` command - shows "SlopOS 1.0"
+- [x] Unknown command error handling
 - [ ] Protected mode (future)
 - [ ] C++ kernel integration (future)

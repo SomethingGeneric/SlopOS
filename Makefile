@@ -12,7 +12,7 @@ BUILD_DIR = build
 
 # Output files
 BOOTLOADER = $(BUILD_DIR)/bootloader.bin
-KERNEL = $(BUILD_DIR)/kernel.o
+KERNEL = $(BUILD_DIR)/kernel.bin
 OS_IMAGE = $(BUILD_DIR)/slopos.img
 
 # Create build directory
@@ -23,11 +23,11 @@ $(BUILD_DIR):
 $(BOOTLOADER): $(BOOT_DIR)/bootloader.asm | $(BUILD_DIR)
 	$(ASM) -f bin $< -o $@
 
-# Compile kernel (currently not used but ready for future expansion)
-$(KERNEL): $(SRC_DIR)/kernel.cpp | $(BUILD_DIR)
-	$(CC) -m32 -c -fno-stack-protector -fno-builtin -nostdlib -nostdinc -o $@ $<
+# Compile kernel (assembly version for real mode)
+$(KERNEL): $(SRC_DIR)/kernel.asm | $(BUILD_DIR)
+	$(ASM) -f bin $< -o $@
 
-# Create OS image (for now just the bootloader)
+# Create OS image (just the bootloader with embedded kernel)
 $(OS_IMAGE): $(BOOTLOADER) | $(BUILD_DIR)
 	cp $(BOOTLOADER) $(OS_IMAGE)
 	# Ensure the image is exactly 512 bytes (one sector)

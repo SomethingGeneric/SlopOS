@@ -13,7 +13,7 @@ BUILD_DIR = build
 # Output files
 BOOTLOADER = $(BUILD_DIR)/bootloader.bin
 KERNEL_ENTRY = $(BUILD_DIR)/kernel_entry.o
-KERNEL_OBJECTS = $(BUILD_DIR)/kernel.o $(BUILD_DIR)/terminal.o $(BUILD_DIR)/string.o $(BUILD_DIR)/timer.o
+KERNEL_OBJECTS = $(BUILD_DIR)/kernel.o
 KERNEL = $(BUILD_DIR)/kernel.bin
 OS_IMAGE = $(BUILD_DIR)/slopos.img
 
@@ -35,13 +35,18 @@ $(BOOTLOADER): $(BOOT_DIR)/bootloader.asm | $(BUILD_DIR)
 $(KERNEL_ENTRY): $(SRC_DIR)/kernel_entry.asm | $(BUILD_DIR)
 	$(ASM) -f elf32 $< -o $@
 
-# Compile kernel C++ files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
+# Compile kernel assembly files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm | $(BUILD_DIR)
+	$(ASM) -f elf32 $< -o $@
+
+# Compile kernel C files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Link kernel
 $(KERNEL): $(KERNEL_ENTRY) $(KERNEL_OBJECTS) | $(BUILD_DIR)
-	$(LD) $(LDFLAGS) -T $(SRC_DIR)/kernel.ld -o $@ $^
+	$(LD) $(LDFLAGS) -T $(SRC_DIR)/kernel.ld -o $@.elf $^
+	objcopy -O binary $@.elf $@
 
 # Create OS image (bootloader + kernel)
 $(OS_IMAGE): $(BOOTLOADER) $(KERNEL) | $(BUILD_DIR)
@@ -50,8 +55,9 @@ $(OS_IMAGE): $(BOOTLOADER) $(KERNEL) | $(BUILD_DIR)
 	truncate -s 512 $(OS_IMAGE)
 	# Append kernel
 	cat $(KERNEL) >> $(OS_IMAGE)
-	# Pad to sector boundary
+	# Pad to sector boundary and add extra sectors for safety
 	truncate -s %512 $(OS_IMAGE)
+	truncate -s +1024 $(OS_IMAGE)
 
 # Build everything
 all: $(OS_IMAGE)

@@ -33,6 +33,16 @@ void kernel_main() {
         read_input(input_buffer, sizeof(input_buffer));
         process_command(input_buffer);
     }
+    terminal_writestring("C++ kernel loaded successfully!\n");
+    terminal_writestring("Architecture upgraded from assembly to C++\n");
+    terminal_writestring("Available commands: uptime, version\n\n");
+    
+    // Main shell loop
+    while (true) {
+        terminal_writestring("> ");
+        read_input(input_buffer, sizeof(input_buffer));
+        process_command(input_buffer);
+    }
 }
 
 void read_input(char* buffer, int max_length) {

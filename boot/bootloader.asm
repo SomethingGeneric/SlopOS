@@ -73,7 +73,7 @@ protected_mode:
     mov esp, 0x90000
     
     ; Jump to C++ kernel
-    call 0x1000
+    jmp 0x1000
 
     ; Should never reach here
 halt_loop:

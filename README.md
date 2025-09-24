@@ -37,7 +37,7 @@ make clean      # Clean build files
 
 ### Project Structure  
 - `src/` - Kernel source code
-  - `multiboot_kernel.cpp` - Main kernel with multiboot headers
+  - `multiboot_kernel.cpp` - Main kernel with multiboot headers and basic shell commands
   - `multiboot_entry.asm` - Assembly entry point for multiboot kernel
   - `multiboot.ld` - Linker script for multiboot ELF kernel
   - `terminal.cpp` - VGA text mode terminal driver (available for expansion)
@@ -53,7 +53,8 @@ make clean      # Clean build files
 - [x] Clean build system with ISO generation
 - [x] QEMU testing support
 - [x] Resolves previous boot loop issues
-- [ ] Interactive shell (future enhancement)
+- [x] Basic shell commands (version, hello, uptime)
+- [ ] Interactive shell input (future enhancement)
 - [ ] Memory management (future enhancement)
 - [ ] Process management (future enhancement)
 
@@ -65,4 +66,14 @@ This version of SlopOS resolves the previous boot loop issue by:
 - Implementing proper multiboot headers and entry points
 - Providing a stable, tested boot process
 
-The GRUB bootloader successfully loads the kernel and displays a working system message, proving the kernel code works correctly when loaded by a reliable bootloader.
+The GRUB bootloader successfully loads the kernel and displays a working system with basic shell functionality.
+
+## Shell Commands
+
+SlopOS now includes basic shell commands that demonstrate the core functionality:
+
+- `version` - displays "slopOS 1.0"
+- `hello` - displays "world"  
+- `uptime` - displays "uptime 0 seconds"
+
+These commands are currently demonstrated in the kernel output. The existing codebase includes terminal input/output functionality in `terminal.cpp` that can be used to implement interactive command processing in future versions.

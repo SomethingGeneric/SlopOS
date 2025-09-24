@@ -2,8 +2,13 @@
 build/
 *.bin
 *.img
+*.iso
 *.o
 *.elf
+
+# Downloaded/extracted files
+limine-7.11.0/
+limine-7.11.0.tar.gz
 
 # IDE and editor files
 .vscode/

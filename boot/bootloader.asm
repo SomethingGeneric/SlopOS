@@ -2,7 +2,7 @@
 [ORG 0x7C00]
 
 ; Boot sector for SlopOS
-; Minimal bootloader with embedded kernel functionality
+; Bootloader that loads and jumps to C++ kernel
 
 start:
     ; Set up segments
@@ -14,197 +14,42 @@ start:
     mov sp, 0x7C00
     sti
 
-    ; Print welcome message
-    mov si, welcome_msg
+    ; Print loading message
+    mov si, loading_msg
     call print_string
-    
-    ; Initialize boot time
-    mov ah, 0x00
-    int 0x1A
-    mov [boot_time_high], dx
-    mov [boot_time_low], cx
-    
-shell_loop:
-    ; Print prompt
-    mov si, prompt_msg
-    call print_string
-    
-    ; Read command
-    call read_line
-    
-    ; Process command
-    call process_command
-    
-    ; Loop back
-    jmp shell_loop
 
-read_line:
-    mov di, input_buffer
-    mov cx, 0
-    
-.read_char:
-    mov ah, 0x00
-    int 0x16
-    
-    cmp al, 0x0D
-    je .done
-    
-    cmp al, 0x08
-    je .backspace
-    
-    cmp cx, 30
-    jae .read_char
-    
-    mov ah, 0x0E
-    int 0x10
-    
-    stosb
-    inc cx
-    jmp .read_char
-    
-.backspace:
-    cmp cx, 0
-    je .read_char
-    
-    mov ah, 0x0E
-    mov al, 0x08
-    int 0x10
-    mov al, ' '
-    int 0x10
-    mov al, 0x08
-    int 0x10
-    
-    dec di
-    dec cx
-    jmp .read_char
-    
-.done:
-    mov al, 0
-    stosb
-    mov si, newline
-    call print_string
-    ret
+    ; Load kernel from sectors 2+ to 0x1000
+    mov ah, 0x02        ; BIOS read sectors
+    mov al, 8           ; Number of sectors to read
+    mov ch, 0           ; Cylinder 0
+    mov cl, 2           ; Start from sector 2
+    mov dh, 0           ; Head 0
+    mov dl, 0x80        ; Drive 0
+    mov bx, 0x1000      ; Load kernel at 0x1000
+    int 0x13
+    jc disk_error
 
-process_command:
-    mov si, input_buffer
-    
-    ; Check for "uptime"
-    mov di, cmd_uptime
-    call compare_strings
-    cmp ax, 1
-    je .handle_uptime
-    
-    ; Check for "version"
-    mov si, input_buffer
-    mov di, cmd_version
-    call compare_strings
-    cmp ax, 1
-    je .handle_version
-    
-    ; Check for empty
-    mov si, input_buffer
-    cmp byte [si], 0
-    je .done
-    
-    mov si, unknown_cmd_msg
-    call print_string
-    jmp .done
-    
-.handle_uptime:
-    call show_uptime
-    jmp .done
-    
-.handle_version:
-    mov si, version_msg
-    call print_string
-    
-.done:
-    ret
+    ; Enable A20 line (simple method)
+    in al, 0x92
+    or al, 2
+    out 0x92, al
 
-show_uptime:
-    mov ah, 0x00
-    int 0x1A
-    
-    sub cx, [boot_time_low]
-    
-    mov ax, cx
-    mov bx, 18
-    xor dx, dx
-    div bx
-    
-    mov si, uptime_msg
-    call print_string
-    
-    call print_number
-    
-    mov si, seconds_msg
-    call print_string
-    ret
+    ; Load GDT
+    lgdt [gdt_descriptor]
 
-print_number:
-    mov bx, 10
-    mov cx, 0
-    
-    cmp ax, 0
-    jne .convert
-    mov ah, 0x0E
-    mov al, '0'
-    int 0x10
-    ret
-    
-.convert:
-    cmp ax, 0
-    je .print_digits
-    
-    xor dx, dx
-    div bx
-    push dx
-    inc cx
-    jmp .convert
-    
-.print_digits:
-    cmp cx, 0
-    je .done
-    
-    pop dx
-    add dl, '0'
-    mov ah, 0x0E
-    mov al, dl
-    int 0x10
-    dec cx
-    jmp .print_digits
-    
-.done:
-    ret
+    ; Enter protected mode
+    mov eax, cr0
+    or eax, 1
+    mov cr0, eax
 
-compare_strings:
-    push si
-    push di
-    
-.loop:
-    mov al, [si]
-    mov bl, [di]
-    cmp al, bl
-    jne .not_equal
-    
-    cmp al, 0
-    je .equal
-    
-    inc si
-    inc di
-    jmp .loop
-    
-.equal:
-    mov ax, 1
-    jmp .done
-    
-.not_equal:
-    mov ax, 0
-    
-.done:
-    pop di
-    pop si
-    ret
+    ; Far jump to protected mode code
+    jmp CODE_SEG:protected_mode
+
+disk_error:
+    mov si, disk_error_msg
+    call print_string
+    cli
+    hlt
 
 print_string:
     mov ah, 0x0E
@@ -217,20 +62,59 @@ print_string:
 .done:
     ret
 
-; Data
-welcome_msg db 'Welcome to SlopOS!', 0x0D, 0x0A, 'Type: uptime, version', 0x0D, 0x0A, 0
-prompt_msg db '> ', 0
-newline db 0x0D, 0x0A, 0
-unknown_cmd_msg db 'Unknown command', 0x0D, 0x0A, 0
-uptime_msg db 'Uptime: ', 0
-seconds_msg db ' seconds', 0x0D, 0x0A, 0
-version_msg db 'SlopOS 1.0', 0x0D, 0x0A, 0
-cmd_uptime db 'uptime', 0
-cmd_version db 'version', 0
+[BITS 32]
+protected_mode:
+    ; Set up data segments
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    
+    ; Set up stack
+    mov esp, 0x90000
+    
+    ; Jump to C++ kernel
+    call 0x1000
 
-boot_time_high dw 0
-boot_time_low dw 0
-input_buffer times 32 db 0
+    ; Should never reach here
+halt_loop:
+    hlt
+    jmp halt_loop
+
+; GDT
+gdt_start:
+    dq 0                        ; Null descriptor
+
+gdt_code:
+    dw 0xFFFF                   ; Limit
+    dw 0                        ; Base low
+    db 0                        ; Base middle
+    db 10011010b                ; Access: present, ring 0, code, executable, readable
+    db 11001111b                ; Flags: 4KB granularity, 32-bit
+    db 0                        ; Base high
+
+gdt_data:
+    dw 0xFFFF                   ; Limit
+    dw 0                        ; Base low
+    db 0                        ; Base middle
+    db 10010010b                ; Access: present, ring 0, data, writable
+    db 11001111b                ; Flags: 4KB granularity, 32-bit
+    db 0                        ; Base high
+
+gdt_end:
+
+gdt_descriptor:
+    dw gdt_end - gdt_start - 1  ; Size
+    dd gdt_start                ; Offset
+
+CODE_SEG equ gdt_code - gdt_start
+DATA_SEG equ gdt_data - gdt_start
+
+; Messages
+loading_msg db 'Loading C++ kernel...', 0x0D, 0x0A, 0
+disk_error_msg db 'Disk error!', 0x0D, 0x0A, 0
 
 ; Fill the rest of the boot sector with zeros and add boot signature
 times 510-($-$$) db 0

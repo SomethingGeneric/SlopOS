@@ -41,7 +41,8 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
 
 # Link kernel
 $(KERNEL): $(KERNEL_ENTRY) $(KERNEL_OBJECTS) | $(BUILD_DIR)
-	$(LD) $(LDFLAGS) -T $(SRC_DIR)/kernel.ld -o $@ $^
+	$(LD) $(LDFLAGS) -T $(SRC_DIR)/kernel.ld -o $@.elf $^
+	objcopy -O binary $@.elf $@
 
 # Create OS image (bootloader + kernel)
 $(OS_IMAGE): $(BOOTLOADER) $(KERNEL) | $(BUILD_DIR)
@@ -50,8 +51,9 @@ $(OS_IMAGE): $(BOOTLOADER) $(KERNEL) | $(BUILD_DIR)
 	truncate -s 512 $(OS_IMAGE)
 	# Append kernel
 	cat $(KERNEL) >> $(OS_IMAGE)
-	# Pad to sector boundary
+	# Pad to sector boundary and add extra sectors for safety
 	truncate -s %512 $(OS_IMAGE)
+	truncate -s +1024 $(OS_IMAGE)
 
 # Build everything
 all: $(OS_IMAGE)

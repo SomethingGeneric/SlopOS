@@ -19,13 +19,10 @@ start:
     call print_string
 
     ; Load kernel from sectors 2+ to 0x1000
-    mov ah, 0x02        ; BIOS read sectors
-    mov al, 8           ; Number of sectors to read
-    mov ch, 0           ; Cylinder 0
-    mov cl, 2           ; Start from sector 2
-    mov dh, 0           ; Head 0
+    ; Use BIOS extended read (LBA) for reliability
+    mov ah, 0x42        ; BIOS extended read
     mov dl, 0x80        ; Drive 0
-    mov bx, 0x1000      ; Load kernel at 0x1000
+    mov si, disk_packet ; DS:SI points to disk address packet
     int 0x13
     jc disk_error
 
@@ -111,6 +108,15 @@ gdt_descriptor:
 
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
+
+; Disk Address Packet for LBA read
+disk_packet:
+    db 0x10             ; Size of packet (16 bytes)
+    db 0x00             ; Reserved
+    dw 7                ; Number of sectors to read
+    dw 0x1000           ; Offset (where to load)
+    dw 0x0000           ; Segment (where to load)
+    dq 1                ; Starting LBA sector (sector 1, since sectors are 0-indexed)
 
 ; Messages
 loading_msg db 'Loading C++ kernel...', 0x0D, 0x0A, 0

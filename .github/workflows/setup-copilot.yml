@@ -1,14 +1,8 @@
-name: Setup Development Environment
-
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  setup-and-build:
+  copilot-setup-steps:
     runs-on: ubuntu-latest
     
     steps:
@@ -38,20 +32,3 @@ jobs:
         nasm --version
         qemu-system-x86_64 --version | head -1
     
-    - name: Build SlopOS
-      run: |
-        echo "Building SlopOS..."
-        make clean
-        make all
-    
-    - name: Verify build artifacts
-      run: |
-        echo "Checking build outputs..."
-        ls -la build/
-        file build/slopos.iso
-        file build/multiboot_kernel.elf
-    
-    - name: Test run (headless mode)
-      run: |
-        echo "Testing SlopOS in headless mode..."
-        timeout 10s make run || echo "OS test completed (timeout expected in headless environment)"

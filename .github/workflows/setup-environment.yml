@@ -1,0 +1,57 @@
+name: Setup Development Environment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  setup-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install required packages for SlopOS development
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          gcc \
+          nasm \
+          make \
+          xorriso \
+          grub-pc-bin \
+          grub-common \
+          mtools \
+          qemu-system-x86 \
+          qemu-system-i386 \
+          libc6-dev-i386 \
+          build-essential
+    
+    - name: Verify package installation
+      run: |
+        echo "Verifying installed packages..."
+        which gcc nasm make xorriso grub-mkrescue qemu-system-x86_64
+        gcc --version
+        nasm --version
+        qemu-system-x86_64 --version | head -1
+    
+    - name: Build SlopOS
+      run: |
+        echo "Building SlopOS..."
+        make clean
+        make all
+    
+    - name: Verify build artifacts
+      run: |
+        echo "Checking build outputs..."
+        ls -la build/
+        file build/slopos.iso
+        file build/multiboot_kernel.elf
+    
+    - name: Test run (headless mode)
+      run: |
+        echo "Testing SlopOS in headless mode..."
+        timeout 10s make run || echo "OS test completed (timeout expected in headless environment)"

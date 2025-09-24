@@ -72,8 +72,49 @@ $(LIMINE_OS_IMAGE): $(KERNEL_ELF) | $(BUILD_DIR)
 	# Copy Limine binary
 	mcopy -i $@@@1M $(LIMINE_DIR)/limine-bios.sys ::/limine-bios.sys
 
-# Original bootloader targets (preserved for reference)
+# Original bootloader targets (fix compiler flags)
 original: $(OS_IMAGE)
+
+# Compile bootloader
+$(BOOTLOADER): $(BOOT_DIR)/bootloader.asm | $(BUILD_DIR)
+	$(ASM) -f bin $< -o $@
+
+# Compile kernel entry
+$(KERNEL_ENTRY): $(SRC_DIR)/kernel_entry.asm | $(BUILD_DIR)
+	$(ASM) -f elf32 $< -o $@
+
+# Compile kernel assembly files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm | $(BUILD_DIR)
+	$(ASM) -f elf32 $< -o $@
+
+# Compile kernel C files (32-bit for original)
+$(BUILD_DIR)/kernel.o: $(SRC_DIR)/kernel.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/terminal.o: $(SRC_DIR)/terminal.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/string.o: $(SRC_DIR)/string.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/timer.o: $(SRC_DIR)/timer.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Link kernel
+$(KERNEL): $(KERNEL_ENTRY) $(BUILD_DIR)/kernel.o $(BUILD_DIR)/terminal.o $(BUILD_DIR)/string.o $(BUILD_DIR)/timer.o | $(BUILD_DIR)
+	$(LD) $(LDFLAGS) -T $(SRC_DIR)/kernel.ld -o $@.elf $^
+	objcopy -O binary $@.elf $@
+
+# Create OS image (bootloader + kernel)
+$(OS_IMAGE): $(BOOTLOADER) $(KERNEL) | $(BUILD_DIR)
+	cp $(BOOTLOADER) $(OS_IMAGE)
+	# Pad bootloader to 512 bytes
+	truncate -s 512 $(OS_IMAGE)
+	# Append kernel
+	cat $(KERNEL) >> $(OS_IMAGE)
+	# Pad to sector boundary and add extra sectors for safety
+	truncate -s %512 $(OS_IMAGE)
+	truncate -s +1024 $(OS_IMAGE)
 
 # Compile bootloader
 $(BOOTLOADER): $(BOOT_DIR)/bootloader.asm | $(BUILD_DIR)
@@ -122,8 +163,31 @@ run: $(LIMINE_OS_IMAGE)
 run-gui: $(LIMINE_OS_IMAGE)
 	qemu-system-x86_64 -drive format=raw,file=$(LIMINE_OS_IMAGE)
 
+# GRUB/Multiboot solution (alternative working solution)
+grub: $(BUILD_DIR)/slopos-grub.iso
+
+$(BUILD_DIR)/multiboot_kernel.elf: $(BUILD_DIR)/multiboot_entry.o $(BUILD_DIR)/multiboot_kernel.o | $(BUILD_DIR)
+	$(LD) $(LDFLAGS) -T $(SRC_DIR)/multiboot.ld -o $@ $^
+
+$(BUILD_DIR)/multiboot_entry.o: $(SRC_DIR)/multiboot_entry.asm | $(BUILD_DIR)
+	$(ASM) -f elf32 $< -o $@
+
+$(BUILD_DIR)/multiboot_kernel.o: $(SRC_DIR)/multiboot_kernel.cpp | $(BUILD_DIR) 
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/slopos-grub.iso: $(BUILD_DIR)/multiboot_kernel.elf | $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)/iso/boot/grub
+	cp $< $(BUILD_DIR)/iso/boot/kernel.elf
+	echo 'set timeout=1' > $(BUILD_DIR)/iso/boot/grub/grub.cfg
+	echo 'menuentry "SlopOS" { multiboot /boot/kernel.elf }' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg
+	grub-mkrescue -o $@ $(BUILD_DIR)/iso
+
 # Run original version in QEMU  
 run-original: $(OS_IMAGE)
 	qemu-system-x86_64 -drive format=raw,file=$(OS_IMAGE) -nographic
 
-.PHONY: all clean run run-gui run-original limine original
+# Run GRUB version in QEMU
+run-grub: $(BUILD_DIR)/slopos-grub.iso
+	qemu-system-x86_64 -cdrom $(BUILD_DIR)/slopos-grub.iso -nographic
+
+.PHONY: all clean run run-gui run-original limine original grub run-grub

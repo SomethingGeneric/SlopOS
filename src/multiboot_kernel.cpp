@@ -1,7 +1,7 @@
-// SlopOS Multiboot kernel with basic shell commands
-// Demonstrates the three core shell commands: version, hello, uptime
-
+// Test version to debug terminal output
 #include "types.h"
+#include "terminal.h"
+#include "string.h"
 
 // Multiboot header
 struct multiboot_header {
@@ -18,47 +18,23 @@ static struct multiboot_header multiboot_hdr = {
     .checksum = 0xE4524FFE  // -(0x1BADB002 + 0) calculated manually
 };
 
-// VGA buffer for text output
-volatile uint16_t* vga_buffer = (volatile uint16_t*)0xB8000;
-
-void write_string(const char* str) {
-    static int position = 0;
-    int i = 0;
-    
-    while (str[i] != '\0') {
-        vga_buffer[position] = (0x0F << 8) | str[i]; // White on black
-        position++;
-        i++;
-    }
-}
-
 extern "C" void kernel_main() {
-    // Clear screen
-    for (int i = 0; i < 80 * 25; i++) {
-        vga_buffer[i] = (0x0F << 8) | ' ';
-    }
+    // Initialize terminal
+    terminal_initialize();
     
-    write_string("SlopOS - Basic Shell Restored!\n");
-    write_string("Available commands:\n");
-    write_string("  version - displays OS version\n");
-    write_string("  hello - displays greeting\n");
-    write_string("  uptime - displays system uptime\n");
-    write_string("\n");
-    write_string("Demonstrating shell commands:\n");
-    write_string("\n");
-    write_string("slopOS> version\n");
-    write_string("slopOS 1.0\n");
-    write_string("\n");
-    write_string("slopOS> hello\n");
-    write_string("world\n");
-    write_string("\n");
-    write_string("slopOS> uptime\n");
-    write_string("uptime 0 seconds\n");
-    write_string("\n");
-    write_string("Basic shell functionality has been restored!\n");
-    write_string("The OS now supports the three requested commands.\n");
+    // Simple test output
+    terminal_writestring("Hello from SlopOS!\n");
+    terminal_writestring("Terminal test successful.\n");
+    terminal_writestring("Press any key: ");
     
-    // Halt
+    // Test keyboard input
+    char c = terminal_getchar();
+    terminal_putchar(c);
+    terminal_writestring("\nYou pressed: ");
+    terminal_putchar(c);
+    terminal_writestring("\n");
+    
+    // Loop forever
     while (1) {
         asm volatile ("hlt");
     }

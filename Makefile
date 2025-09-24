@@ -24,7 +24,7 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 # Build multiboot kernel (32-bit ELF)
-$(KERNEL_ELF): $(BUILD_DIR)/multiboot_entry.o $(BUILD_DIR)/multiboot_kernel.o | $(BUILD_DIR)
+$(KERNEL_ELF): $(BUILD_DIR)/multiboot_entry.o $(BUILD_DIR)/multiboot_kernel.o $(BUILD_DIR)/terminal.o $(BUILD_DIR)/string.o $(BUILD_DIR)/timer.o | $(BUILD_DIR)
 	$(LD) $(LDFLAGS) -T $(SRC_DIR)/multiboot.ld -o $@ $^
 
 # Compile multiboot entry point
@@ -33,6 +33,18 @@ $(BUILD_DIR)/multiboot_entry.o: $(SRC_DIR)/multiboot_entry.asm | $(BUILD_DIR)
 
 # Compile multiboot kernel
 $(BUILD_DIR)/multiboot_kernel.o: $(SRC_DIR)/multiboot_kernel.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile terminal driver
+$(BUILD_DIR)/terminal.o: $(SRC_DIR)/terminal.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile string functions
+$(BUILD_DIR)/string.o: $(SRC_DIR)/string.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile timer functions
+$(BUILD_DIR)/timer.o: $(SRC_DIR)/timer.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Create GRUB ISO image

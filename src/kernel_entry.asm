@@ -16,7 +16,7 @@ _start:
     cld
     rep stosb
     
-    ; Call the C++ kernel
+    ; Call the C kernel
     call kernel_main
     
     ; If kernel returns, halt

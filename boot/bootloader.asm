@@ -113,13 +113,13 @@ DATA_SEG equ gdt_data - gdt_start
 disk_packet:
     db 0x10             ; Size of packet (16 bytes)
     db 0x00             ; Reserved
-    dw 7                ; Number of sectors to read
+    dw 3                ; Number of sectors to read
     dw 0x1000           ; Offset (where to load)
     dw 0x0000           ; Segment (where to load)
     dq 1                ; Starting LBA sector (sector 1, since sectors are 0-indexed)
 
 ; Messages
-loading_msg db 'Loading C++ kernel...', 0x0D, 0x0A, 0
+loading_msg db 'Loading C kernel...', 0x0D, 0x0A, 0
 disk_error_msg db 'Disk error!', 0x0D, 0x0A, 0
 
 ; Fill the rest of the boot sector with zeros and add boot signature

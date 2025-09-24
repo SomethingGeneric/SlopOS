@@ -40,7 +40,7 @@ $(BUILD_DIR):
 limine: $(LIMINE_OS_IMAGE)
 
 # Build kernel for Limine (64-bit ELF)
-$(KERNEL_ELF): $(BUILD_DIR)/entry_limine.o $(BUILD_DIR)/kernel_limine.o $(BUILD_DIR)/terminal.o $(BUILD_DIR)/string.o $(BUILD_DIR)/timer.o | $(BUILD_DIR)
+$(KERNEL_ELF): $(BUILD_DIR)/entry_limine.o $(BUILD_DIR)/kernel_simple.o | $(BUILD_DIR)
 	$(LD) $(LDFLAGS_LIMINE) -T $(SRC_DIR)/kernel_limine.ld -o $@ $^
 
 # Compile Limine entry point
@@ -48,7 +48,7 @@ $(BUILD_DIR)/entry_limine.o: $(SRC_DIR)/entry_limine.asm | $(BUILD_DIR)
 	$(ASM) -f elf64 $< -o $@
 
 # Compile Limine kernel  
-$(BUILD_DIR)/kernel_limine.o: $(SRC_DIR)/kernel_limine.cpp | $(BUILD_DIR)
+$(BUILD_DIR)/kernel_simple.o: $(SRC_DIR)/kernel_simple.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS_LIMINE) -c $< -o $@
 
 # Compile C++ files for Limine (64-bit)

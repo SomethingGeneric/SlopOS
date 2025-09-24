@@ -2,6 +2,7 @@
 build/
 *.bin
 *.img
+*.iso
 *.o
 *.elf
 

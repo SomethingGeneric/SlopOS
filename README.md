@@ -1,59 +1,68 @@
 # SlopOS
-x64 OS mostly developed by Copilot
+A minimal operating system built with GRUB bootloader
 
-A minimal C++ operating system that boots to protected mode and provides a basic shell implemented in C++ rather than assembly.
+SlopOS is a simple operating system that demonstrates multiboot kernel development using the GRUB bootloader. It resolves the previous boot loop issues by using a proven, reliable bootloader instead of a custom implementation.
 
 ## Architecture
 
-SlopOS now features a proper bootloader that transitions from 16-bit real mode to 32-bit protected mode and loads a C++ kernel from disk. This represents a significant architectural upgrade from the previous assembly-only implementation.
+SlopOS uses the multiboot specification and boots via GRUB, providing a stable and reliable boot process.
 
 ### Boot Process
-1. **16-bit Bootloader**: Sets up segments, loads kernel from disk
-2. **Protected Mode Transition**: Enables A20 line, sets up GDT, enters 32-bit mode  
-3. **C++ Kernel**: Shell and system functionality implemented in C++
+1. **GRUB Bootloader**: Handles hardware initialization and multiboot protocol
+2. **Multiboot Kernel**: 32-bit protected mode kernel with multiboot headers
+3. **VGA Text Output**: Simple text-based output for demonstration
 
 ## Building and Running
 
 ### Prerequisites
 - NASM assembler
-- GCC/G++ compiler 
+- GCC compiler 
+- GRUB tools (grub-mkrescue, grub-pc-bin)
 - QEMU x86-64 emulator
 - Make
+- xorriso (for ISO creation)
+- mtools
 
 ### Quick Start
 ```bash
-# Build and run the OS
+# Build and run the OS (builds ISO and boots with GRUB)
 ./run.sh
 
 # Or manually:
-make all
-make run
+make all        # Build ISO image
+make run        # Run in QEMU (nographic)
+make run-gui    # Run in QEMU with graphics
+make clean      # Clean build files
 ```
 
-### Project Structure
-- `boot/` - 16-bit bootloader assembly code with protected mode transition
-- `src/` - C++ kernel source code
-  - `kernel.cpp` - Main kernel and shell implementation
-  - `terminal.cpp` - VGA text mode terminal driver
-  - `string.cpp` - String manipulation functions
-  - `timer.cpp` - Timer functionality using RDTSC
-  - `kernel_entry.asm` - Assembly entry point for C++ kernel
-  - `kernel.ld` - Linker script for kernel
-- `build/` - Generated build artifacts
-- `Makefile` - Build configuration for 32-bit protected mode kernel
+### Project Structure  
+- `src/` - Kernel source code
+  - `multiboot_kernel.cpp` - Main kernel with multiboot headers
+  - `multiboot_entry.asm` - Assembly entry point for multiboot kernel
+  - `multiboot.ld` - Linker script for multiboot ELF kernel
+  - `terminal.cpp` - VGA text mode terminal driver (available for expansion)
+  - `string.cpp` - String manipulation functions (available for expansion)
+  - `timer.cpp` - Timer functionality (available for expansion)
+- `build/` - Generated build artifacts and ISO image
+- `Makefile` - Build configuration for GRUB-based system
 - `run.sh` - Build and run script
-
 ## Features
-- [x] Bootable 512-byte boot sector with protected mode transition
-- [x] 32-bit protected mode operation  
-- [x] C++ kernel architecture (migrated from assembly)
-- [x] VGA text mode terminal driver
-- [x] Welcome message displayed from C++ kernel
-- [x] Interactive shell implemented in C++
-- [x] `uptime` command - shows seconds since boot using RDTSC
-- [x] `version` command - shows "SlopOS 1.0 - C++ kernel edition"
-- [x] `help` command - shows available commands
-- [x] Enhanced error handling and user feedback
-- [ ] 64-bit long mode (future)
-- [ ] Memory management (future)
-- [ ] Process management (future)
+- [x] GRUB-based bootloader (reliable, no boot loops)
+- [x] Multiboot-compliant 32-bit protected mode kernel  
+- [x] VGA text mode output
+- [x] Clean build system with ISO generation
+- [x] QEMU testing support
+- [x] Resolves previous boot loop issues
+- [ ] Interactive shell (future enhancement)
+- [ ] Memory management (future enhancement)
+- [ ] Process management (future enhancement)
+
+## Boot Loop Fix
+
+This version of SlopOS resolves the previous boot loop issue by:
+- Replacing the problematic custom bootloader with GRUB
+- Using the multiboot specification for reliable kernel loading
+- Implementing proper multiboot headers and entry points
+- Providing a stable, tested boot process
+
+The GRUB bootloader successfully loads the kernel and displays a working system message, proving the kernel code works correctly when loaded by a reliable bootloader.

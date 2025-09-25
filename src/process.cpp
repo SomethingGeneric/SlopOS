@@ -24,7 +24,18 @@ void process_init() {
     process_table[0].priority = 0;
     strcpy(process_table[0].name, "kernel");
     current_process = 0;
-    process_count = 1;
+    
+    // Create shell process entry (PID 1) - it will run in kernel context
+    process_table[1].pid = 1;
+    process_table[1].state = PROCESS_RUNNING;
+    process_table[1].page_dir = NULL;
+    process_table[1].priority = 1;
+    strcpy(process_table[1].name, "shell");
+    process_table[1].stack_base = 0; // Uses kernel stack
+    process_table[1].stack_top = 0;
+    
+    process_count = 2;
+    next_pid = 2;
 }
 
 // Create a new process
@@ -122,8 +133,14 @@ void process_schedule() {
     
     // Find next ready process
     int next = current_process;
+    int attempts = 0;
     do {
         next = (next + 1) % MAX_PROCESSES;
+        attempts++;
+        // If we've checked all slots and found no ready process, stay with current
+        if (attempts >= MAX_PROCESSES) {
+            return;
+        }
     } while (process_table[next].state != PROCESS_READY);
     
     // If we found a different process, switch to it

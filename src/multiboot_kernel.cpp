@@ -25,17 +25,17 @@ extern "C" void kernel_main() {
     // Simple test output
     terminal_writestring("Hello from SlopOS!\n");
     terminal_writestring("Terminal test successful.\n");
-    terminal_writestring("Press any key: ");
+    terminal_writestring("String input/output test ready.\n\n");
     
-    // Test keyboard input
-    char c = terminal_getchar();
-    terminal_putchar(c);
-    terminal_writestring("\nYou pressed: ");
-    terminal_putchar(c);
-    terminal_writestring("\n");
+    // Buffer for string input
+    char input_buffer[256];
     
-    // Loop forever
+    // Main input/output loop
     while (1) {
-        asm volatile ("hlt");
+        terminal_writestring("Enter a string: ");
+        terminal_getstring(input_buffer, sizeof(input_buffer));
+        terminal_writestring("You entered: ");
+        terminal_writestring(input_buffer);
+        terminal_writestring("\n\n");
     }
 }

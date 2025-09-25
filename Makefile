@@ -67,6 +67,22 @@ $(BUILD_DIR)/syscall.o: $(SRC_DIR)/syscall.cpp | $(BUILD_DIR)
 $(BUILD_DIR)/shell.o: $(SRC_DIR)/shell.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Test kernel build target
+test: $(BUILD_DIR)/multiboot_entry.o $(BUILD_DIR)/test_kernel.o $(BUILD_DIR)/terminal.o $(BUILD_DIR)/string.o | $(BUILD_DIR)
+	$(LD) $(LDFLAGS) -T $(SRC_DIR)/multiboot.ld -o $(BUILD_DIR)/test_kernel.elf $^
+	mkdir -p $(BUILD_DIR)/iso/boot/grub
+	cp $(BUILD_DIR)/test_kernel.elf $(BUILD_DIR)/iso/boot/kernel.elf
+	echo 'set timeout=3' > $(BUILD_DIR)/iso/boot/grub/grub.cfg
+	echo 'set default=0' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg
+	echo 'menuentry "SlopOS Test" {' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg
+	echo '    multiboot /boot/kernel.elf' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg
+	echo '}' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg
+	grub-mkrescue -o $(BUILD_DIR)/test.iso $(BUILD_DIR)/iso
+
+# Compile test kernel
+$(BUILD_DIR)/test_kernel.o: $(SRC_DIR)/test_kernel.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # Create GRUB ISO image
 $(OS_IMAGE): $(KERNEL_ELF) | $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/iso/boot/grub

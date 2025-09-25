@@ -37,14 +37,19 @@ make clean      # Clean build files
 
 ### Project Structure  
 - `src/` - Kernel source code
-  - `multiboot_kernel.cpp` - Main kernel with multiboot headers and basic shell commands
+  - `multiboot_kernel.cpp` - Main kernel with process and memory management
   - `multiboot_entry.asm` - Assembly entry point for multiboot kernel
   - `multiboot.ld` - Linker script for multiboot ELF kernel
-  - `terminal.cpp` - VGA text mode terminal driver (available for expansion)
-  - `string.cpp` - String manipulation functions (available for expansion)
-  - `timer.cpp` - Timer functionality (available for expansion)
+  - `terminal.cpp` - VGA text mode terminal driver
+  - `string.cpp` - String manipulation functions
+  - `timer.cpp` - Timer functionality
+  - **`memory.cpp` - Physical memory allocator and heap management**
+  - **`process.cpp` - Process control and scheduling**
+  - **`context_switch.asm` - Assembly context switching code**
+  - **`syscall.cpp` - System call interface implementation**
+  - **`shell.cpp` - Shell as separate integrated process**
 - `build/` - Generated build artifacts and ISO image
-- `Makefile` - Build configuration for GRUB-based system
+- `Makefile` - Build configuration for GRUB-based system with new components
 - `run.sh` - Build and run script
 ## Features
 - [x] GRUB-based bootloader (reliable, no boot loops)
@@ -57,8 +62,39 @@ make clean      # Clean build files
 - [x] Shell commands (version, hello, uptime, about, help)
 - [x] Keyboard input support with character echo
 - [x] Hardware cursor positioning management
-- [ ] Memory management (future enhancement)
-- [ ] Process management (future enhancement)
+- [x] **Memory management system (physical memory allocator)**
+- [x] **Process management framework (PCB, scheduling)**
+- [x] **System call interface**
+- [x] **Separated shell architecture**
+
+## Process and Memory Management
+
+SlopOS v2.0 introduces fundamental operating system features:
+
+### Memory Management
+- Physical memory allocator with bitmap-based free page tracking
+- Kernel heap allocator (kmalloc/kfree) for dynamic memory allocation
+- Memory initialization and management for 32MB RAM
+- Foundation for virtual memory management (paging support prepared)
+
+### Process Management
+- Process Control Block (PCB) structure for process metadata
+- Process creation, termination, and state management
+- Basic cooperative multitasking scheduler (round-robin)
+- Context switching support with assembly implementation
+- Support for up to 32 concurrent processes
+
+### System Architecture
+- Clear separation between kernel and user space
+- System call interface for user-kernel communication
+- Shell runs as integrated process with memory management
+- Modular design allowing future enhancements
+
+### System Calls
+- sys_exit - Process termination  
+- sys_write - Terminal output
+- sys_read - Terminal input
+- sys_yield - Cooperative multitasking
 
 ## Boot Loop Fix
 
@@ -72,12 +108,14 @@ The GRUB bootloader successfully loads the kernel and displays a working system 
 
 ## Shell Commands
 
-SlopOS now includes an interactive shell that allows users to type commands and see their output:
+SlopOS now includes an enhanced shell with process and memory management features:
 
-- `version` - displays "slopOS 1.0"
+- `version` - displays "slopOS 2.0 - Now with process management!"
 - `hello` - displays "world"  
-- `uptime` - displays system uptime in CPU ticks
-- `about` - displays information about SlopOS architecture and multitasking requirements
+- `ps` - shows running processes (kernel and shell)
+- `memory` - displays memory management status
+- `yield` - demonstrates cooperative multitasking
+- `exit` - exits the shell
 - `help` - displays list of available commands
 
 The shell features:
@@ -86,4 +124,6 @@ The shell features:
 - Command parsing and execution
 - Error handling for unknown commands
 - Real-time user interaction
-- Welcome message and professional shell prompt "slopOS> "
+- Professional shell prompt "slopOS> "
+- **Memory management integration**
+- **Process management awareness**

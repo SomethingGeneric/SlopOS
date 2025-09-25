@@ -1,14 +1,11 @@
 #include "syscall.h" 
 #include "string.h"
+#include "terminal.h"
 
-// Simple system call wrappers for user programs
-static inline int syscall(uint32_t call_num, uint32_t arg1 = 0, uint32_t arg2 = 0, uint32_t arg3 = 0) {
-    // For now, call directly (in real OS this would use int 0x80 or similar)
-    return syscall_handler(call_num, arg1, arg2, arg3);
-}
-
+// For now, use direct terminal functions instead of system calls
 static int write_string(const char* str) {
-    return syscall(SYS_WRITE, (uint32_t)str, strlen(str), 0);
+    terminal_writestring(str);
+    return strlen(str);
 }
 
 // Shell command execution
@@ -37,11 +34,12 @@ void shell_execute_command(const char* command) {
         write_string("  Kernel heap: OK\n");
     } else if (strcmp(command, "yield") == 0) {
         write_string("Yielding CPU...\n");
-        syscall(SYS_YIELD);
-        write_string("Back in shell\n");
+        // For now, just a message - no actual yielding
+        write_string("Back in shell (no actual yield yet)\n");
     } else if (strcmp(command, "exit") == 0) {
         write_string("Goodbye!\n");
-        syscall(SYS_EXIT, 0);
+        // For now, just return from function
+        return;
     } else if (strlen(command) == 0) {
         // Empty command, do nothing
         return;
@@ -52,26 +50,24 @@ void shell_execute_command(const char* command) {
     }
 }
 
-// Shell main loop - this will be the entry point for the shell process
 extern "C" void shell_main() {
     char command_buffer[256];
     
     write_string("Welcome to SlopOS Shell v2.0!\n"); 
-    write_string("Running as separate user process.\n");
+    write_string("Running with memory management support.\n");
     write_string("Type 'help' for available commands.\n\n");
     
     while (1) {
         write_string("slopOS> ");
         
-        // Simple command input (using system call)
-        syscall(SYS_READ, (uint32_t)command_buffer, sizeof(command_buffer), 0);
-        
-        // Remove newline if present
-        size_t len = strlen(command_buffer);
-        if (len > 0 && command_buffer[len-1] == '\n') {
-            command_buffer[len-1] = '\0';
-        }
+        // Use terminal functions directly for now
+        terminal_getstring(command_buffer, sizeof(command_buffer));
         
         shell_execute_command(command_buffer);
+        
+        // Check for exit command
+        if (strcmp(command_buffer, "exit") == 0) {
+            break;
+        }
     }
 }

@@ -26,56 +26,40 @@ static struct multiboot_header multiboot_hdr = {
 extern "C" void shell_main();
 
 extern "C" void kernel_main() {
-    // Initialize terminal
+    // Initialize terminal first
     terminal_initialize();
     
-    // Initialize timer
-    timer_initialize();
+    // Simple test message
+    terminal_writestring("SlopOS v2.0 - Memory and Process Management\n");
+    terminal_writestring("Kernel started successfully!\n");
     
-    // Initialize memory management (assume 32MB of RAM for now)
+    // Test memory allocation
+    terminal_writestring("Initializing memory management...\n");
     memory_init(32 * 1024 * 1024);
+    terminal_writestring("Memory manager initialized.\n");
     
-    // Initialize process management
-    process_init();
-    
-    // Initialize system calls
-    syscall_init();
-    
-    // Kernel startup message
-    terminal_writestring("SlopOS v2.0 - Process and Memory Management\n");
-    terminal_writestring("=========================================\n");
-    terminal_writestring("Kernel initialization complete:\n");
-    terminal_writestring("  - Terminal driver: OK\n");
-    terminal_writestring("  - Timer system: OK\n");
-    terminal_writestring("  - Memory manager: OK\n");
-    terminal_writestring("  - Process manager: OK\n");
-    terminal_writestring("  - System calls: OK\n");
-    terminal_writestring("\nStarting shell as user process...\n\n");
-    
-    // Create shell process
-    uint32_t shell_pid = process_create("shell", shell_main, 1);
-    if (shell_pid == 0) {
-        terminal_writestring("ERROR: Failed to create shell process!\n");
-        terminal_writestring("Falling back to kernel mode...\n");
-        
-        // Fallback: simple kernel loop
-        while (1) {
-            terminal_writestring("kernel> System ready (no shell)\n");
-            // Simple delay
-            for (volatile int i = 0; i < 10000000; i++);
-        }
+    // Test basic allocation
+    void* test_ptr = kmalloc(1024);
+    if (test_ptr) {
+        terminal_writestring("Memory allocation test: SUCCESS\n");
+    } else {
+        terminal_writestring("Memory allocation test: FAILED\n");
     }
     
-    terminal_writestring("Shell process created with PID: ");
-    char pid_str[16];
-    itoa32(shell_pid, pid_str, 10);
-    terminal_writestring(pid_str);
-    terminal_writestring("\n");
+    // Initialize other systems
+    timer_initialize();
+    process_init();
+    syscall_init();
     
-    // Kernel idle loop - yield to other processes
+    terminal_writestring("All systems initialized.\n");
+    terminal_writestring("Starting shell...\n\n");
+    
+    // Call shell function directly
+    shell_main();
+    
+    // Should not reach here
+    terminal_writestring("Shell exited. System halting.\n");
     while (1) {
-        process_yield();
-        // Simple delay to prevent busy waiting
-        for (volatile int i = 0; i < 1000; i++);
+        asm volatile ("hlt");
     }
 }

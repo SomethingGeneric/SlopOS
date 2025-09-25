@@ -119,3 +119,13 @@ void memory_init(uint32_t mem_size) {
     // Initialize virtual memory manager  
     vmm_init();
 }
+
+// Get memory statistics
+void memory_get_stats(memory_stats_t* stats) {
+    if (stats) {
+        stats->total_pages = pmm.total_pages;
+        stats->used_pages = pmm.used_pages;
+        stats->free_pages = pmm.total_pages - pmm.used_pages;
+        stats->heap_used = kernel_heap_pos - KERNEL_HEAP_START;
+    }
+}

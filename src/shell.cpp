@@ -146,6 +146,7 @@ extern "C" void shell_main() {
     
     write_string("Welcome to SlopOS Shell v2.0!\n"); 
     write_string("Running with memory management support.\n");
+    write_string("Shell running as separate process concept.\n");
     write_string("Type 'help' for available commands.\n\n");
     
     while (1) {

@@ -37,7 +37,18 @@ void shell_execute_command(const char* command) {
         terminal_writestring("  version - Display OS version\n");
         terminal_writestring("  hello   - Display greeting\n");
         terminal_writestring("  uptime  - Display system uptime\n");
+        terminal_writestring("  about   - About SlopOS and multitasking info\n");
         terminal_writestring("  help    - Show this help message\n");
+    } else if (strcmp(command, "about") == 0) {
+        terminal_writestring("SlopOS - A minimal operating system\n");
+        terminal_writestring("Built with GRUB bootloader and multiboot specification\n");
+        terminal_writestring("Features: VGA text mode, keyboard input, basic shell\n");
+        terminal_writestring("To support background tasks and multitasking, SlopOS would need:\n");
+        terminal_writestring("  - Process/task scheduler\n");
+        terminal_writestring("  - Memory management (heap, virtual memory)\n");
+        terminal_writestring("  - Interrupt handling and timer interrupts\n");
+        terminal_writestring("  - Inter-process communication\n");
+        terminal_writestring("  - File system support\n");
     } else if (strlen(command) == 0) {
         // Empty command, do nothing
         return;

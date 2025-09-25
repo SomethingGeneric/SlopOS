@@ -103,6 +103,8 @@ void shell_execute_command(const char* command) {
             write_string("Failed to create uptime process!\n");
         } else {
             write_string("Uptime process created successfully.\n");
+            // Yield to allow the uptime process to run
+            process_yield();
         }
     } else if (strcmp(command, "help") == 0) {
         write_string("Available commands:\n");

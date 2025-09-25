@@ -46,6 +46,9 @@ void terminal_initialize() {
     for (size_t x = 0; x < VGA_WIDTH; x++) {
         terminal_buffer[x] = vga_entry(' ', terminal_color);
     }
+    
+    // Initialize cursor position
+    terminal_update_cursor();
 }
 
 void terminal_setcolor(uint8_t color) {
@@ -97,12 +100,14 @@ void terminal_putchar(char c) {
             }
         }
     }
+    terminal_update_cursor();
 }
 
 void terminal_writestring(const char* data) {
     for (size_t i = 0; i < strlen(data); i++) {
         terminal_putchar(data[i]);
     }
+    terminal_update_cursor();
 }
 
 // Simple keyboard input using polling
@@ -114,6 +119,19 @@ static inline uint8_t inb(uint16_t port) {
 
 static inline void outb(uint16_t port, uint8_t val) {
     asm volatile ("outb %0, %1" : : "a" (val), "Nd" (port));
+}
+
+// Update hardware cursor position
+void terminal_update_cursor() {
+    uint16_t pos = terminal_row * VGA_WIDTH + terminal_column;
+    
+    // Cursor position low byte
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (uint8_t)(pos & 0xFF));
+    
+    // Cursor position high byte
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 }
 
 char terminal_getchar() {

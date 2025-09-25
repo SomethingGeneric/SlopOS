@@ -9,6 +9,9 @@ extern "C" void version_process_main();
 extern "C" void hello_process_main();
 extern "C" void help_process_main();
 extern "C" void ps_process_main();
+extern "C" void uptime_process_main();
+extern "C" void memory_process_main();
+extern "C" void yield_process_main();
 
 // Command loader functions
 void command_loader_init();

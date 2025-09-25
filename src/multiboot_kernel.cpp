@@ -31,7 +31,7 @@ extern "C" void kernel_main() {
     terminal_initialize();
     
     // Simple test message
-    terminal_writestring("SlopOS v2.0 - Memory and Process Management\n");
+    terminal_writestring("SlopOS v3.0 - Process-Based Command System\n");
     terminal_writestring("Kernel started successfully!\n");
     
     // Test memory allocation
@@ -55,7 +55,8 @@ extern "C" void kernel_main() {
     
     terminal_writestring("All systems initialized.\n");
     terminal_writestring("Commands are now loaded as processes.\n");
-    terminal_writestring("Starting shell directly (will implement as process)...\n\n");
+    terminal_writestring("Available commands: version, hello, help, ps, uptime, memory, yield\n");
+    terminal_writestring("Starting shell (process-based command system active)...\n\n");
     
     // For now, call shell function directly but make it process-aware
     shell_main();

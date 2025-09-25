@@ -36,35 +36,7 @@ void shell_execute_command(const char* command) {
         uint32_t pid = command_spawn_process(command);
         
         if (pid > 0) {
-            // Command spawned successfully
-            write_string("Command '");
-            write_string(command);
-            write_string("' spawned as process ");
-            
-            // Simple PID to string conversion
-            char pid_str[16];
-            int pos = 0;
-            uint32_t temp_pid = pid;
-            if (temp_pid == 0) {
-                pid_str[pos++] = '0';
-            } else {
-                char temp[16];
-                int temp_pos = 0;
-                while (temp_pid > 0) {
-                    temp[temp_pos++] = '0' + (temp_pid % 10);
-                    temp_pid /= 10;
-                }
-                // Reverse
-                for (int j = temp_pos - 1; j >= 0; j--) {
-                    pid_str[pos++] = temp[j];
-                }
-            }
-            pid_str[pos] = '\0';
-            
-            write_string(pid_str);
-            write_string("\n");
-            
-            // Yield to let the command process run
+            // Command spawned successfully, yield to let it run
             process_yield();
         } else {
             write_string("Unknown command: ");
@@ -77,9 +49,9 @@ void shell_execute_command(const char* command) {
 extern "C" void shell_main() {
     char command_buffer[256];
     
-    write_string("Welcome to SlopOS Shell v2.0!\n"); 
-    write_string("Running with memory management support.\n");
-    write_string("Shell running as separate process concept.\n");
+    write_string("Welcome to SlopOS Shell v3.0!\n"); 
+    write_string("Running with process-based command system.\n");
+    write_string("All commands now run as separate processes.\n");
     write_string("Type 'help' for available commands.\n\n");
     
     while (1) {

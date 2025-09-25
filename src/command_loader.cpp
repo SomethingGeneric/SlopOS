@@ -4,53 +4,68 @@
 #include "memory.h"
 #include "string.h"
 
-// Command registry structure
+// Simple command binary structure - contains actual compiled code
 typedef struct {
-    const char* name;
-    void (*entry_point)();
-} command_entry_t;
+    uint32_t entry_offset;  // Offset to entry point from start
+    uint32_t code_size;     // Size of code section
+    uint8_t code[];         // Actual machine code
+} simple_executable_t;
 
-// Registry of available commands
-static command_entry_t command_registry[] = {
-    {"version", version_process_main},
-    {"hello", hello_process_main},
-    {"help", help_process_main},
-    {"ps", ps_process_main},
-    {NULL, NULL} // Sentinel
-};
+// Forward declarations for command processes
+extern "C" void version_process_main();
+extern "C" void hello_process_main();
+extern "C" void help_process_main();
+extern "C" void ps_process_main();
+extern "C" void uptime_process_main();
+extern "C" void memory_process_main();
+extern "C" void yield_process_main();
 
-// Initialize command loader and register commands in filesystem
+// Initialize command loader and create process-ready commands
 void command_loader_init() {
     filesystem_init();
     
-    // Register each command as a "file" in our in-memory filesystem
-    for (int i = 0; command_registry[i].name != NULL; i++) {
-        command_entry_t* cmd = &command_registry[i];
-        
-        // Create a simple "executable" - just store the function pointer
-        uint8_t* executable = (uint8_t*)kmalloc(sizeof(void*));
-        if (executable) {
-            *((void**)executable) = (void*)cmd->entry_point;
-            filesystem_add_file(cmd->name, executable, sizeof(void*));
-            kfree(executable); // Filesystem makes its own copy
-        }
-    }
+    // For this simplified implementation, we'll register commands
+    // by directly creating processes when requested rather than 
+    // storing executables in the filesystem. This is more practical
+    // for the current kernel architecture.
 }
 
-// Spawn a command as a process
+// Spawn a command as a process using direct function call
 uint32_t command_spawn_process(const char* command_name) {
-    uint32_t size;
-    uint8_t* executable = filesystem_read_file(command_name, &size);
+    void (*entry_point)() = NULL;
     
-    if (!executable) {
-        return 0; // Command not found
+    // Map command names to their entry points
+    if (strcmp(command_name, "version") == 0) {
+        entry_point = version_process_main;
+    } else if (strcmp(command_name, "hello") == 0) {
+        entry_point = hello_process_main;
+    } else if (strcmp(command_name, "help") == 0) {
+        entry_point = help_process_main;
+    } else if (strcmp(command_name, "ps") == 0) {
+        entry_point = ps_process_main;
+    } else if (strcmp(command_name, "uptime") == 0) {
+        entry_point = uptime_process_main;
+    } else if (strcmp(command_name, "memory") == 0) {
+        entry_point = memory_process_main;
+    } else if (strcmp(command_name, "yield") == 0) {
+        entry_point = yield_process_main;
     }
     
-    // Create process from the executable
-    return process_create_from_buffer(command_name, executable, size, 1);
+    if (entry_point) {
+        // Create process with the function entry point
+        return process_create(command_name, entry_point, 1);
+    }
+    
+    return 0; // Command not found
 }
 
 // Check if command is available
 bool command_is_available(const char* command_name) {
-    return filesystem_find_file(command_name) != NULL;
+    return (strcmp(command_name, "version") == 0 ||
+            strcmp(command_name, "hello") == 0 ||
+            strcmp(command_name, "help") == 0 ||
+            strcmp(command_name, "ps") == 0 ||
+            strcmp(command_name, "uptime") == 0 ||
+            strcmp(command_name, "memory") == 0 ||
+            strcmp(command_name, "yield") == 0);
 }

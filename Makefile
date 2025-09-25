@@ -24,7 +24,7 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 # Build multiboot kernel (32-bit ELF)
-$(KERNEL_ELF): $(BUILD_DIR)/multiboot_entry.o $(BUILD_DIR)/multiboot_kernel.o $(BUILD_DIR)/terminal.o $(BUILD_DIR)/string.o $(BUILD_DIR)/timer.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/process.o $(BUILD_DIR)/context_switch.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/filesystem.o $(BUILD_DIR)/command_loader.o $(BUILD_DIR)/version_process.o $(BUILD_DIR)/hello_process.o $(BUILD_DIR)/help_process.o $(BUILD_DIR)/ps_process.o $(BUILD_DIR)/version.o $(BUILD_DIR)/hello.o $(BUILD_DIR)/ps.o $(BUILD_DIR)/uptime.o $(BUILD_DIR)/memory_cmd.o $(BUILD_DIR)/yield.o $(BUILD_DIR)/help.o | $(BUILD_DIR)
+$(KERNEL_ELF): $(BUILD_DIR)/multiboot_entry.o $(BUILD_DIR)/multiboot_kernel.o $(BUILD_DIR)/terminal.o $(BUILD_DIR)/string.o $(BUILD_DIR)/timer.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/process.o $(BUILD_DIR)/context_switch.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/filesystem.o $(BUILD_DIR)/command_loader.o $(BUILD_DIR)/version_process.o $(BUILD_DIR)/hello_process.o $(BUILD_DIR)/help_process.o $(BUILD_DIR)/ps_process.o $(BUILD_DIR)/uptime_process.o $(BUILD_DIR)/memory_process.o $(BUILD_DIR)/yield_process.o $(BUILD_DIR)/version.o $(BUILD_DIR)/hello.o $(BUILD_DIR)/ps.o $(BUILD_DIR)/uptime.o $(BUILD_DIR)/memory_cmd.o $(BUILD_DIR)/yield.o $(BUILD_DIR)/help.o | $(BUILD_DIR)
 	$(LD) $(LDFLAGS) -T $(SRC_DIR)/multiboot.ld -o $@ $^
 
 # Compile multiboot entry point
@@ -86,6 +86,15 @@ $(BUILD_DIR)/help_process.o: $(SRC_DIR)/commands/help_process.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/ps_process.o: $(SRC_DIR)/commands/ps_process.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/uptime_process.o: $(SRC_DIR)/commands/uptime_process.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/memory_process.o: $(SRC_DIR)/commands/memory_process.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/yield_process.o: $(SRC_DIR)/commands/yield_process.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Compile command modules

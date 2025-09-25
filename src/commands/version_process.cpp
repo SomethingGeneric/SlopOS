@@ -4,7 +4,8 @@
 // Process entry point for version command
 extern "C" void version_process_main() {
     // Use terminal functions directly for now (will use syscalls later)
-    terminal_writestring("slopOS 2.0 - Now with process management!\n");
+    terminal_writestring("slopOS 3.0 - Process-Based Command System!\n");
+    terminal_writestring("All commands now run as separate processes.\n");
     
     // Exit this process
     sys_exit(0);

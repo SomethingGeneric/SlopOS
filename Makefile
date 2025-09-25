@@ -124,7 +124,7 @@ test: $(BUILD_DIR)/multiboot_entry.o $(BUILD_DIR)/test_kernel.o $(BUILD_DIR)/ter
 	$(LD) $(LDFLAGS) -T $(SRC_DIR)/multiboot.ld -o $(BUILD_DIR)/test_kernel.elf $^
 	mkdir -p $(BUILD_DIR)/iso/boot/grub
 	cp $(BUILD_DIR)/test_kernel.elf $(BUILD_DIR)/iso/boot/kernel.elf
-	echo 'set timeout=3' > $(BUILD_DIR)/iso/boot/grub/grub.cfg
+	echo 'set timeout=0' > $(BUILD_DIR)/iso/boot/grub/grub.cfg
 	echo 'set default=0' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg
 	echo 'menuentry "SlopOS Test" {' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg
 	echo '    multiboot /boot/kernel.elf' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg
@@ -139,7 +139,7 @@ $(BUILD_DIR)/test_kernel.o: $(SRC_DIR)/test_kernel.cpp | $(BUILD_DIR)
 $(OS_IMAGE): $(KERNEL_ELF) | $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/iso/boot/grub
 	cp $< $(BUILD_DIR)/iso/boot/kernel.elf
-	echo 'set timeout=3' > $(BUILD_DIR)/iso/boot/grub/grub.cfg
+	echo 'set timeout=0' > $(BUILD_DIR)/iso/boot/grub/grub.cfg
 	echo 'set default=0' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg
 	echo 'menuentry "SlopOS" {' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg
 	echo '    multiboot /boot/kernel.elf' >> $(BUILD_DIR)/iso/boot/grub/grub.cfg

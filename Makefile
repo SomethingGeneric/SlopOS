@@ -24,7 +24,7 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 # Build multiboot kernel (32-bit ELF)
-$(KERNEL_ELF): $(BUILD_DIR)/multiboot_entry.o $(BUILD_DIR)/multiboot_kernel.o $(BUILD_DIR)/terminal.o $(BUILD_DIR)/string.o $(BUILD_DIR)/timer.o | $(BUILD_DIR)
+$(KERNEL_ELF): $(BUILD_DIR)/multiboot_entry.o $(BUILD_DIR)/multiboot_kernel.o $(BUILD_DIR)/terminal.o $(BUILD_DIR)/string.o $(BUILD_DIR)/timer.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/process.o $(BUILD_DIR)/context_switch.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/shell.o | $(BUILD_DIR)
 	$(LD) $(LDFLAGS) -T $(SRC_DIR)/multiboot.ld -o $@ $^
 
 # Compile multiboot entry point
@@ -45,6 +45,26 @@ $(BUILD_DIR)/string.o: $(SRC_DIR)/string.cpp | $(BUILD_DIR)
 
 # Compile timer functions
 $(BUILD_DIR)/timer.o: $(SRC_DIR)/timer.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile memory management
+$(BUILD_DIR)/memory.o: $(SRC_DIR)/memory.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile process management
+$(BUILD_DIR)/process.o: $(SRC_DIR)/process.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile context switching
+$(BUILD_DIR)/context_switch.o: $(SRC_DIR)/context_switch.asm | $(BUILD_DIR)
+	$(ASM) -f elf32 $< -o $@
+
+# Compile system calls
+$(BUILD_DIR)/syscall.o: $(SRC_DIR)/syscall.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile shell
+$(BUILD_DIR)/shell.o: $(SRC_DIR)/shell.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Create GRUB ISO image

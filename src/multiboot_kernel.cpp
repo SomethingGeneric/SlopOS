@@ -1,8 +1,11 @@
-// SlopOS Kernel with basic shell functionality
+// SlopOS Kernel with process and memory management
 #include "types.h"
 #include "terminal.h"
 #include "string.h"
 #include "timer.h"
+#include "memory.h"
+#include "process.h"
+#include "syscall.h"
 
 // Multiboot header
 struct multiboot_header {
@@ -19,45 +22,8 @@ static struct multiboot_header multiboot_hdr = {
     .checksum = 0xE4524FFE  // -(0x1BADB002 + 0) calculated manually
 };
 
-// Shell command execution
-void shell_execute_command(const char* command) {
-    if (strcmp(command, "version") == 0) {
-        terminal_writestring("slopOS 1.0\n");
-    } else if (strcmp(command, "hello") == 0) {
-        terminal_writestring("world\n");
-    } else if (strcmp(command, "uptime") == 0) {
-        char buffer[32];
-        uint32_t ticks = timer_get_ticks();
-        itoa32(ticks, buffer, 10);
-        terminal_writestring("System uptime: ");
-        terminal_writestring(buffer);
-        terminal_writestring(" CPU ticks\n");
-    } else if (strcmp(command, "help") == 0) {
-        terminal_writestring("Available commands:\n");
-        terminal_writestring("  version - Display OS version\n");
-        terminal_writestring("  hello   - Display greeting\n");
-        terminal_writestring("  uptime  - Display system uptime\n");
-        terminal_writestring("  about   - About SlopOS and multitasking info\n");
-        terminal_writestring("  help    - Show this help message\n");
-    } else if (strcmp(command, "about") == 0) {
-        terminal_writestring("SlopOS - A minimal operating system\n");
-        terminal_writestring("Built with GRUB bootloader and multiboot specification\n");
-        terminal_writestring("Features: VGA text mode, keyboard input, basic shell\n");
-        terminal_writestring("To support background tasks and multitasking, SlopOS would need:\n");
-        terminal_writestring("  - Process/task scheduler\n");
-        terminal_writestring("  - Memory management (heap, virtual memory)\n");
-        terminal_writestring("  - Interrupt handling and timer interrupts\n");
-        terminal_writestring("  - Inter-process communication\n");
-        terminal_writestring("  - File system support\n");
-    } else if (strlen(command) == 0) {
-        // Empty command, do nothing
-        return;
-    } else {
-        terminal_writestring("Unknown command: ");
-        terminal_writestring(command);
-        terminal_writestring("\nType 'help' for available commands.\n");
-    }
-}
+// Forward declaration of shell main function
+extern "C" void shell_main();
 
 extern "C" void kernel_main() {
     // Initialize terminal
@@ -66,17 +32,50 @@ extern "C" void kernel_main() {
     // Initialize timer
     timer_initialize();
     
-    // Welcome message
-    terminal_writestring("Welcome to SlopOS!\n");
-    terminal_writestring("Type 'help' for available commands.\n\n");
+    // Initialize memory management (assume 32MB of RAM for now)
+    memory_init(32 * 1024 * 1024);
     
-    // Buffer for command input
-    char command_buffer[256];
+    // Initialize process management
+    process_init();
     
-    // Main shell loop
+    // Initialize system calls
+    syscall_init();
+    
+    // Kernel startup message
+    terminal_writestring("SlopOS v2.0 - Process and Memory Management\n");
+    terminal_writestring("=========================================\n");
+    terminal_writestring("Kernel initialization complete:\n");
+    terminal_writestring("  - Terminal driver: OK\n");
+    terminal_writestring("  - Timer system: OK\n");
+    terminal_writestring("  - Memory manager: OK\n");
+    terminal_writestring("  - Process manager: OK\n");
+    terminal_writestring("  - System calls: OK\n");
+    terminal_writestring("\nStarting shell as user process...\n\n");
+    
+    // Create shell process
+    uint32_t shell_pid = process_create("shell", shell_main, 1);
+    if (shell_pid == 0) {
+        terminal_writestring("ERROR: Failed to create shell process!\n");
+        terminal_writestring("Falling back to kernel mode...\n");
+        
+        // Fallback: simple kernel loop
+        while (1) {
+            terminal_writestring("kernel> System ready (no shell)\n");
+            // Simple delay
+            for (volatile int i = 0; i < 10000000; i++);
+        }
+    }
+    
+    terminal_writestring("Shell process created with PID: ");
+    char pid_str[16];
+    itoa32(shell_pid, pid_str, 10);
+    terminal_writestring(pid_str);
+    terminal_writestring("\n");
+    
+    // Kernel idle loop - yield to other processes
     while (1) {
-        terminal_writestring("slopOS> ");
-        terminal_getstring(command_buffer, sizeof(command_buffer));
-        shell_execute_command(command_buffer);
+        process_yield();
+        // Simple delay to prevent busy waiting
+        for (volatile int i = 0; i < 1000; i++);
     }
 }

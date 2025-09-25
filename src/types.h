@@ -10,7 +10,11 @@ typedef unsigned long long uint64_t;
 typedef unsigned long size_t;
 
 #ifndef NULL
+#ifdef __cplusplus
+#define NULL 0
+#else
 #define NULL ((void*)0)
+#endif
 #endif
 
 #endif

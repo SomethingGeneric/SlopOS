@@ -88,6 +88,69 @@ uint32_t process_create(const char* name, void (*entry_point)(), uint32_t priori
     return proc->pid;
 }
 
+// Create a new process from memory buffer (simplified executable format)
+uint32_t process_create_from_buffer(const char* name, uint8_t* buffer, uint32_t size, uint32_t priority) {
+    // Find free slot in process table
+    int slot = -1;
+    for (int i = 1; i < MAX_PROCESSES; i++) {
+        if (process_table[i].state == PROCESS_TERMINATED) {
+            slot = i;
+            break;
+        }
+    }
+    
+    if (slot == -1) {
+        return 0; // No free slots
+    }
+    
+    process_t* proc = &process_table[slot];
+    
+    // Initialize process
+    proc->pid = next_pid++;
+    proc->state = PROCESS_READY;
+    proc->priority = priority;
+    strcpy(proc->name, name);
+    
+    // Allocate page directory for process (simplified - no paging)
+    proc->page_dir = NULL;
+    
+    // Allocate stack in kernel heap
+    proc->stack_base = (uint32_t)kmalloc(STACK_SIZE);
+    if (!proc->stack_base) {
+        return 0; // Failed to allocate stack
+    }
+    proc->stack_top = proc->stack_base + STACK_SIZE;
+    
+    // Allocate memory for the executable and copy it
+    uint8_t* process_code = (uint8_t*)kmalloc(size);
+    if (!process_code) {
+        kfree((void*)proc->stack_base);
+        return 0; // Failed to allocate code memory
+    }
+    
+    memcpy(process_code, buffer, size);
+    
+    // For this simplified implementation, assume the buffer contains a function pointer
+    // at the beginning (this is a simplification - a real OS would parse ELF format)
+    void (*entry_point)() = (void (*)())process_code;
+    
+    // Initialize CPU context
+    proc->context.eip = (uint32_t)entry_point;
+    proc->context.esp = proc->stack_top - 16; // Leave some space
+    proc->context.ebp = proc->context.esp;
+    proc->context.eflags = 0x202; // Enable interrupts
+    proc->context.cs = 0x08; // Kernel code segment for now
+    proc->context.ds = proc->context.es = proc->context.fs = 
+    proc->context.gs = proc->context.ss = 0x10; // Kernel data segment
+    
+    // Clear other registers
+    proc->context.eax = proc->context.ebx = proc->context.ecx = 
+    proc->context.edx = proc->context.esi = proc->context.edi = 0;
+    
+    process_count++;
+    return proc->pid;
+}
+
 // Terminate a process
 void process_terminate(uint32_t pid) {
     process_t* proc = process_get_by_pid(pid);

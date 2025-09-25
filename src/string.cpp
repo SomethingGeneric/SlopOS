@@ -22,6 +22,31 @@ char* strcpy(char* dest, const char* src) {
     return original_dest;
 }
 
+char* strncpy(char* dest, const char* src, size_t n) {
+    char* original_dest = dest;
+    size_t i;
+    
+    for (i = 0; i < n && src[i] != '\0'; i++) {
+        dest[i] = src[i];
+    }
+    for (; i < n; i++) {
+        dest[i] = '\0';
+    }
+    
+    return original_dest;
+}
+
+void* memcpy(void* dest, const void* src, size_t n) {
+    char* d = (char*)dest;
+    const char* s = (const char*)src;
+    
+    for (size_t i = 0; i < n; i++) {
+        d[i] = s[i];
+    }
+    
+    return dest;
+}
+
 void itoa32(uint32_t value, char* buffer, int base) {
     char* ptr = buffer;
     char* ptr1 = buffer;

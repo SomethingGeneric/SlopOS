@@ -9,6 +9,11 @@ typedef unsigned long long uint64_t;
 
 typedef unsigned long size_t;
 
+// Boolean type
+#ifndef __cplusplus
+typedef enum { false = 0, true = 1 } bool;
+#endif
+
 #ifndef NULL
 #ifdef __cplusplus
 #define NULL 0

@@ -6,6 +6,7 @@
 #include "memory.h"
 #include "process.h"
 #include "syscall.h"
+#include "command_loader.h"
 
 // Multiboot header
 struct multiboot_header {
@@ -50,8 +51,10 @@ extern "C" void kernel_main() {
     timer_initialize();
     process_init();
     syscall_init();
+    command_loader_init();
     
     terminal_writestring("All systems initialized.\n");
+    terminal_writestring("Commands are now loaded as processes.\n");
     terminal_writestring("Starting shell directly (will implement as process)...\n\n");
     
     // For now, call shell function directly but make it process-aware

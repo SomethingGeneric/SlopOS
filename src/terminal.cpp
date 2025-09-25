@@ -157,3 +157,33 @@ char terminal_getchar() {
     // Unknown scan code or non-printable key, try again
     return terminal_getchar();
 }
+
+void terminal_getstring(char* buffer, size_t max_length) {
+    size_t pos = 0;
+    char c;
+    
+    while (pos < max_length - 1) {  // Leave space for null terminator
+        c = terminal_getchar();
+        
+        if (c == '\n') {
+            // Enter pressed - end input
+            terminal_putchar('\n');
+            break;
+        } else if (c == '\b') {
+            // Backspace pressed - remove character if possible
+            if (pos > 0) {
+                pos--;
+                terminal_putchar('\b');
+            }
+        } else if (c >= 32 && c <= 126) {
+            // Printable character - add to buffer and echo
+            buffer[pos] = c;
+            pos++;
+            terminal_putchar(c);
+        }
+        // Ignore other characters (non-printable, special keys, etc.)
+    }
+    
+    // Null terminate the string
+    buffer[pos] = '\0';
+}

@@ -126,19 +126,27 @@ char terminal_getchar() {
     };
     
     uint8_t scancode;
+    uint8_t status;
     
-    // Wait for a key press
-    while (!(inb(0x64) & 1)) {
-        asm volatile ("hlt");
-    }
+    // Wait for keyboard data to be available
+    // Check keyboard controller status register at port 0x64
+    // Bit 0: Output buffer status (1 = data available from keyboard)
+    // Bit 1: Input buffer status (1 = data has not been read yet)
+    do {
+        status = inb(0x64);
+        // Wait until there's data available (bit 0 set) and input buffer is ready (bit 1 clear)
+    } while (!(status & 0x01));
     
+    // Read the scan code from the keyboard data port
     scancode = inb(0x60);
     
-    // Only handle key press events (bit 7 clear)
+    // Only handle key press events (scan codes with bit 7 clear)
     if (scancode & 0x80) {
-        return terminal_getchar(); // Key release, try again
+        // This is a key release event, ignore and try again
+        return terminal_getchar();
     }
     
+    // Convert scan code to ASCII if possible
     if (scancode < sizeof(scancode_to_ascii)) {
         char c = scancode_to_ascii[scancode];
         if (c != 0) {
@@ -146,6 +154,6 @@ char terminal_getchar() {
         }
     }
     
-    // Unknown key, try again
+    // Unknown scan code or non-printable key, try again
     return terminal_getchar();
 }

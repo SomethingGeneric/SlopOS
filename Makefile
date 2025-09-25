@@ -61,6 +61,9 @@ $(OS_IMAGE): $(KERNEL_ELF) | $(BUILD_DIR)
 # Build everything
 all: $(OS_IMAGE)
 
+# Default target for faster local testing
+.DEFAULT_GOAL := run-gui
+
 # Clean build files
 clean:
 	rm -rf $(BUILD_DIR)

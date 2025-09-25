@@ -153,3 +153,11 @@ process_t* process_get_by_pid(uint32_t pid) {
     }
     return NULL;
 }
+
+// Get process by table index
+process_t* process_get_by_index(int index) {
+    if (index >= 0 && index < MAX_PROCESSES && process_table[index].state != PROCESS_TERMINATED) {
+        return &process_table[index];
+    }
+    return NULL;
+}

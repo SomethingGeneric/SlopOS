@@ -52,14 +52,24 @@ extern "C" void kernel_main() {
     syscall_init();
     
     terminal_writestring("All systems initialized.\n");
-    terminal_writestring("Starting shell...\n\n");
+    terminal_writestring("Starting shell as separate process...\n\n");
     
-    // Call shell function directly
-    shell_main();
+    // Create shell process instead of calling directly
+    uint32_t shell_pid = process_create("shell", shell_main, 1);
+    if (shell_pid == 0) {
+        terminal_writestring("Failed to create shell process!\n");
+        while (1) {
+            asm volatile ("hlt");
+        }
+    }
     
-    // Should not reach here
-    terminal_writestring("Shell exited. System halting.\n");
+    terminal_writestring("Shell process created successfully.\n");
+    terminal_writestring("Entering scheduler loop...\n\n");
+    
+    // Kernel becomes idle process - keep scheduling
     while (1) {
-        asm volatile ("hlt");
+        process_schedule();
+        // Small delay to prevent busy waiting
+        for (volatile int i = 0; i < 100000; i++);
     }
 }

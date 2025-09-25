@@ -38,6 +38,7 @@ typedef struct {
 // Process management functions
 void process_init();
 uint32_t process_create(const char* name, void (*entry_point)(), uint32_t priority);
+uint32_t process_create_from_buffer(const char* name, uint8_t* buffer, uint32_t size, uint32_t priority);
 void process_terminate(uint32_t pid);
 void process_yield();
 void process_schedule();

@@ -40,6 +40,16 @@ void memory_init(uint32_t mem_size);
 void* kmalloc(size_t size);
 void kfree(void* ptr);
 
+// Memory statistics
+typedef struct {
+    uint32_t total_pages;
+    uint32_t used_pages;
+    uint32_t free_pages;
+    uint32_t heap_used;
+} memory_stats_t;
+
+void memory_get_stats(memory_stats_t* stats);
+
 // Physical memory management
 uint32_t pmm_alloc_page();
 void pmm_free_page(uint32_t page_addr);

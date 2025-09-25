@@ -158,17 +158,44 @@ void process_terminate(uint32_t pid) {
         return;
     }
     
-    // Free process resources
-    if (proc->stack_base) {
-        kfree((void*)proc->stack_base);
-    }
-    
+    // Mark process as terminated first
     proc->state = PROCESS_TERMINATED;
     process_count--;
     
-    // If current process is terminating, schedule next one
+    // If current process is terminating, schedule next one BEFORE freeing resources
     if (proc->pid == process_table[current_process].pid) {
-        process_schedule();
+        // Find the next ready process and switch to it
+        // We need to do this without trying to save the current (terminating) process context
+        
+        // Find next ready process
+        int next = current_process;
+        int attempts = 0;
+        do {
+            next = (next + 1) % MAX_PROCESSES;
+            attempts++;
+            // If we've checked all slots and found no ready process, we have a problem
+            if (attempts >= MAX_PROCESSES) {
+                // No other processes - return to kernel/shell
+                current_process = 0; // Go back to kernel process
+                break;
+            }
+        } while (process_table[next].state != PROCESS_READY);
+        
+        if (attempts < MAX_PROCESSES) {
+            // Found a ready process, switch to it without saving current context
+            process_t* next_proc = &process_table[next];
+            next_proc->state = PROCESS_RUNNING;
+            current_process = next;
+            
+            // Switch to the new process (passing NULL for old_context to skip saving)
+            context_switch(NULL, &next_proc->context);
+        }
+    }
+    
+    // Free process resources after context switch is done
+    if (proc->stack_base) {
+        kfree((void*)proc->stack_base);
+        proc->stack_base = 0;
     }
 }
 
@@ -211,11 +238,13 @@ void process_schedule() {
         process_t* next_proc = &process_table[next];
         next_proc->state = PROCESS_RUNNING;
         
+        // Update current_process BEFORE context switch
+        current_process = next;
+        
         // Skip page directory switching for now (no paging)
         
         // Perform context switch
         context_switch(&current->context, &next_proc->context);
-        current_process = next;
     }
 }
 

@@ -43,6 +43,7 @@ void process_yield();
 void process_schedule();
 process_t* process_get_current();
 process_t* process_get_by_pid(uint32_t pid);
+process_t* process_get_by_index(int index); // Get process by table index
 
 // Context switching (implemented in assembly)
 extern "C" void context_switch(cpu_context_t* old_context, cpu_context_t* new_context);

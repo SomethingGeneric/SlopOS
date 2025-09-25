@@ -52,12 +52,12 @@ extern "C" void kernel_main() {
     syscall_init();
     
     terminal_writestring("All systems initialized.\n");
-    terminal_writestring("Starting shell...\n\n");
+    terminal_writestring("Starting shell directly (will implement as process)...\n\n");
     
-    // Call shell function directly
+    // For now, call shell function directly but make it process-aware
     shell_main();
     
-    // Should not reach here
+    // Should not normally reach here
     terminal_writestring("Shell exited. System halting.\n");
     while (1) {
         asm volatile ("hlt");

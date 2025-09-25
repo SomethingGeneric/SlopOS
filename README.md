@@ -49,13 +49,14 @@ make clean      # Clean build files
 ## Features
 - [x] GRUB-based bootloader (reliable, no boot loops)
 - [x] Multiboot-compliant 32-bit protected mode kernel  
-- [x] VGA text mode output with proper newline handling
+- [x] VGA text mode output with proper newline and cursor positioning
 - [x] Clean build system with ISO generation
 - [x] QEMU testing support
 - [x] Resolves previous boot loop issues
 - [x] Interactive shell with command input/output
-- [x] Shell commands (version, hello, uptime, help)
+- [x] Shell commands (version, hello, uptime, about, help)
 - [x] Keyboard input support with character echo
+- [x] Hardware cursor positioning management
 - [ ] Memory management (future enhancement)
 - [ ] Process management (future enhancement)
 
@@ -76,11 +77,13 @@ SlopOS now includes an interactive shell that allows users to type commands and 
 - `version` - displays "slopOS 1.0"
 - `hello` - displays "world"  
 - `uptime` - displays system uptime in CPU ticks
+- `about` - displays information about SlopOS architecture and multitasking requirements
 - `help` - displays list of available commands
 
 The shell features:
 - Interactive command input with keyboard support
-- Proper newline handling for readable output  
+- Proper cursor positioning that follows text input/output
 - Command parsing and execution
 - Error handling for unknown commands
 - Real-time user interaction
+- Welcome message and professional shell prompt "slopOS> "
